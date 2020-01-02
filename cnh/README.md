@@ -1,0 +1,1 @@
+Chris example spack setups
