@@ -1,0 +1,30 @@
+modules:
+  enable:
+    - lmod
+  lmod:
+    core_compilers:
+      - 'gcc@4.8.5'
+    hierarchy:
+      - 'mpi'
+    hash_length: 0
+    whitelist:
+      - 'gcc@8.3.0'
+      - 'ffmpeg'
+      - 'git'
+      - 'openmpi'
+      - 'rclone'
+      - 'tmux'
+      - 'hdf5'
+      - 'parallel-netcdf'
+      - 'netcdf'
+      - 'netcdf-fortran'
+    blacklist: ['%gcc@9.2.0', '%gcc@4.8.5', '%gcc@8.3.0']
+    all:
+      suffixes:
+        ^openblas: 'openblas'
+        ^netlib-lapack: 'netlib'
+      filter:
+        environment_blacklist: ['CPATH', 'LIBRARY_PATH']
+      environment:
+        set:
+          '{name}_ROOT': '{prefix}'
