@@ -36,5 +36,5 @@ ln -s ${SPACK_DOT}   ${SPACK_BASE}/.spack
 echo "# Created softlinks"
 echo "# \"${SPACK_SHORT}\" and \"${SPACK_DOT}\" "
 echo "# that point to "
-echo "# 
+echo "# \"${SPACK_BASE}\" and \"${SPACK_BASE}/.spack\" respectively."
 # 2. Check out spack
