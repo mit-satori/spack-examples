@@ -1,0 +1,30 @@
+#
+# Small customizations for Satoir/Power 9
+#
+# 1. golang
+#    avoid having Spack build golang. Use code that has been downloaded by hand.
+#    The bootstrap is a mess with ppcle due to a combination of spack config 
+#    files and Google approach of supporting distributing only binaries for later 
+#    versions of golang. We want golang so we can use spack to build up to date
+#    rclone.
+#
+# 2. cuda
+#    Point to a preinstalled version that was hand installed. The NVidia distribution
+#    does not include code for building ppcle.
+#
+# 3. all
+#    Set default compiler as gcc 8.3.0.
+#    
+#
+#
+packages:
+   go:
+      paths:
+         go%gcc@8.3.0 arch=linux-rhel7-power9le : /home/cnh
+
+   cuda:
+      paths:
+         cuda%gcc@8.3.0 arch=linux-rhel7-power9le : /usr/local/cuda
+   
+   all:
+      compiler: [gcc@8.3.0]
