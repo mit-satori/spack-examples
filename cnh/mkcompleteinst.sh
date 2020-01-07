@@ -5,6 +5,8 @@
 # ** This code assumes you don't already use ~/.spack (the default spack practice) as a directory. 
 #
 
+MY_SCRIPT_ROOT="$(cd "$(dirname "$0")"; pwd -P)"
+
 # Parameters
 SPACK_INST="v0002"
 MY_NB_ROOT="/nobackup/users/${USER}"
@@ -47,6 +49,9 @@ git clone https://github.com/spack/spack.git
 cd spack
 git checkout v0.13.3
 
-# 3. Configure spack
+# 3. Configure spack to use custom files
 cd ${SPACK_BASE}/spackgit/spack
+(cd  ${MY_SCRIPT_ROOT}/custom-files/spackgit/ ; tar -cvf - . ) | tar -xvf -
 
+cd ${SPACK_BASE}/.spack
+(cd  ${MY_SCRIPT_ROOT}/custom-files/.spack ; tar -cvf - . ) | tar -xvf -
