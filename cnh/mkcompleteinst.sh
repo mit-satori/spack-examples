@@ -12,7 +12,8 @@ SPACK_INST="v0002"
 MY_NB_ROOT="/nobackup/users/${USER}"
 MY_HOME=~
 
-MY_NB_ROOT="${MY_HOME}/projects/nobackup/users/${USER}"
+# For use when testing on laptop
+# MY_NB_ROOT="${MY_HOME}/projects/nobackup/users/${USER}"
 
 # Paramtereized paths
 SPACK_BASE="${MY_NB_ROOT}/spack/${SPACK_INST}"
@@ -55,3 +56,33 @@ cd ${SPACK_BASE}/spackgit/spack
 
 cd ${SPACK_BASE}/.spack
 (cd  ${MY_SCRIPT_ROOT}/custom-files/.spack ; tar -cvf - . ) | tar -xvf -
+
+# 4. Put reminder about what to do next
+cat <<EOFA
+
+
+###################################################################################
+# OK - Spack is setup in "${SPACK_BASE}", with links from 
+# "${SPACK_SHORT}".
+# To start
+# 1. cd ${SPACK_BASE}/spackgit/spack
+#
+# 2. comment out 
+#
+#      all:
+#         compiler: [gcc@8.3.0]
+#
+#    in "~/.spack/package.yml"
+#
+# 3. bin/spack install gcc@8.3.0
+# 4. bin/spack compilers find
+# 5. bin/spack compilers find
+# 6. restore
+#
+#      all:
+#         compiler: [gcc@8.3.0]
+#
+#    in "~/.spack/package.yml"
+# 7. build everything else
+###################################################################################
+EOFA
