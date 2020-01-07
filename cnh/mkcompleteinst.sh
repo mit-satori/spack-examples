@@ -6,7 +6,7 @@
 #
 
 # Parameters
-SPACK_INST="v0001"
+SPACK_INST="v0002"
 MY_NB_ROOT="/nobackup/users/${USER}"
 MY_HOME=~
 
@@ -18,7 +18,7 @@ SPACK_SHORT="${MY_HOME}/spack"
 SPACK_DOT="${MY_HOME}/.spack"
 
 # Some simple checks
-if [ -e ${SPACK_DOT} && !-L ${SPACK_DOT} ]; then
+if [ -e ${SPACK_DOT} ] && [ ! -L ${SPACK_DOT} ] ; then
  echo "ERROR: A directory exists at the location, \"${SPACK_DOT}\", specified in the SPACK_DOT variable."
  exit
 fi
