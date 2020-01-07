@@ -1,0 +1,15 @@
+diff --git a/var/spack/repos/builtin/packages/netcdf-fortran/package.py b/var/spack/repos/builtin/packages/netcdf-fortran/package.py
+index d698ff1..639de4b 100644
+--- a/var/spack/repos/builtin/packages/netcdf-fortran/package.py
++++ b/var/spack/repos/builtin/packages/netcdf-fortran/package.py
+@@ -53,3 +53,10 @@ class NetcdfFortran(AutotoolsPackage):
+         return find_libraries(
+             libraries, root=self.prefix, shared=shared, recursive=True
+         )
++
++    def setup_environment(self, spack_env, run_env):
++        spec = self.spec
++
++        spack_env.set('CC', spec['mpi'].mpicc)
++        spack_env.set('FC', spec['mpi'].mpifc)
++        spack_env.set('CXX', spec['mpi'].mpicxx)

@@ -1,0 +1,11 @@
+packages:
+   go:
+      paths:
+         go%gcc@8.3.0 arch=linux-rhel7-power9le : /home/cnh
+
+   cuda:
+      paths:
+         cuda%gcc@8.3.0 arch=linux-rhel7-power9le : /usr/local/cuda
+   
+   all:
+      compiler: [gcc@8.3.0]
