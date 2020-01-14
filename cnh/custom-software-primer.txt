@@ -1,0 +1,214 @@
+
+  The satori-support@techsquare.com can be used to request installation of standard software on the system.
+  Sometimes, however, it is easier and more practical for individuals to install their own software. This
+  can happen for various reasons, for example the software may require detailed 
+
+o Download and install yourself
+
+  There are a base set of software tools available on Satori that support installing extra software.
+  For Python based workflows the conda package manager is supported. For C, C++, Fortran compiled applications
+  then a standadrd set of compilers and libraries for those compilers are available. The compilers
+  include the GNU GCC compiler family and the IBM Spctrum XL compiler families. Libraries built
+  against these compilers include math libraries (such as BLAS and IBM ESSL).
+  
+
+o Downloading YUM package rpms
+
+  Sometimes there are prebuilt package management repositories with software that has not been installed. Software 
+  can be downloaded from these and installed in a non-privileged directory as follows. 
+
+  mkdir my-yum-downloads
+  cd my-yum-downloads
+  mkdir  golang.ppc64le 
+  cd golang.ppc64le 
+  yumdownloader golang.ppc64le 
+  rpm2cpio ./golang-1.11.5-1.el7.ppc64le.rpm | cpio -idmv
+
+  The extracted files can then be linked from user local bin/, etc/ and usr/
+
+
+o Spack
+
+Spack is a software build orchestration tool that can be used by non-privileged accounts
+to create custom collections of executable programs, typically from open source repositories.
+It is especially useful on IBM Power systems, since there are fewer readily available and 
+up to date pre-built executables. Spack provides a repository of standard configuration files
+for building software, scripts to build coherent stacks of software, and tools for create
+environment modules trees.
+
+Spack is led by participants in the US DOE Exascale Computing Project (ECP). The ECP developed 
+Spack to serve the need of ECP researchers for a tool to manage multi-application and library 
+custom software toolchains that were exploding in combinatorial complexity. 
+
+Spack can be useful for building your own collection of software without needing any 
+systems administration involvement.  
+
+  o A simple Spack example
+
+
+   cd /home/cnh/projects/spack-testing/spack
+
+   module use /nobackup/users/cnh/projects/standard-software/v20191209/spack/share/spack/lmod/linux-rhel7-ppc64le/
+   modue avail
+   module avail
+   module unuse /nobackup/users/cnh/projects/standard-software/v20191209/spack/share/spack/lmod/linux-rhel7-ppc64le
+   module use /nobackup/users/cnh/projects/standard-software/v20191209/spack/share/spack/lmod/linux-rhel7-ppc64le/Core
+   module avail
+   module load  gcc/8.3.0 
+   module avail
+   which gcc
+   spack compiler find
+   bin/spack compiler find
+   /home/cnh/.spack/linux/compilers.yaml
+
+   o Spack with go and go based programs (e.g. rclone) on ppc64le
+
+     Spack on ppc64le has a challenge with programs that include Go source. The Go compiler requires
+     Go to build itself. To bootstrap Spack includes a package go-bootstrap, but this package does not
+     know about ppc64le. Later versions of go-bootstrap do know about ppc64le but Google has a preference
+     for serving downloaded binaries ( https://github.com/golang/go/issues/27725#issuecomment-422645045 ).
+
+     To work around this use a locally installed go and add a package spec to ~/.spack/packages.yaml
+
+      go:
+         paths:
+            go%gcc@8.3.0 arch=linux-rhel7-power9le : /home/cnh
+
+
+
+   o Spack with cuda on ppc64le
+  
+     Spack config files pull down a x86 version of the cuda install tools. To work around this use a locally installed 
+     cuda and add a package spec to ~/.spack/packages.yaml
+
+     cuda:
+        paths:
+           cuda%gcc@8.3.0 arch=linux-rhel7-power9le : /usr/local/cuda
+   
+
+
+   o Spack for building compilers
+   
+     Spack can build compilers, but needs a compiler to build the compiler so that the new compiler
+     is named under the old compiler. However, once the new compiler is registered so that it appears using
+     the command
+     spack compilers
+     all software built with the new compiler will have a name under that Compiler-CompilerVersion 
+     tree. This is particularly noticeable on Power9 RHEL7 ppc64le systems, because the default system
+     gcc (4.8.5) does not include Power9 instructions. If we want to build a gcc that uses Power9 instructions
+     for the compiler (as well as in generated code) we have to first build a more recent compiler and
+     then build another compiler on top of that!
+
+   o Spack and modules
+
+     Spack writes built software into a deep hierarchy of directories named for
+     compiler, compiler version, software, software version and build/compiler options. 
+     The compiler, compiler version, software, software version are human readable. The build/compiler options 
+     are hashed into a string that uniquely identifies the build.
+     The resulting directory paths are long, unwieldy and hard to work with.
+     To address this Spack integrates with lmod and tcl environment modules tools to simplify paths. The 
+      spack module lmod refresh --delete-tree -y
+     commands can be configured using a file 
+      etc/spack/modules.yaml
+     to generate (or regenerate) a tree of lmod modules that can hide some of the spack build tree complexity.
+     This allows a custom lmod (or tcl) modules tree to be generated quite easily. If this is used for the main
+     modules tree of a system it should be employed cautiously as it can replace the entire spack based module
+     hierarchy on a system.
+
+  o Spack config information
+    In the Spacj buildtree/ each package is built with a .spack/ directory alongside its install directories
+    (bin/ include/ lib/ etc....). The .spack/ directory contains several files. The file spec.yaml describes
+    the settings that were used for building the package (and the spack built packages its build depended on).
+    Other files ( spack-build-env.txt, spack-build-out.txt ), contain logs from the spack build process for 
+    the package.
+    
+
+o Useful spack commands
+
+  Getting started
+   - git clone https://github.com/spack/spack.git
+   - cd spack
+   - . share/spack/setup-env.sh
+   - bin/spack compilers
+
+  Get system platform-os-target
+  - bin/spack arch
+
+  List all the packages that have been explicitly installed
+  showing their location and thier variant settings
+  - spack find -N -c -x -f -L -v  -p
+
+  
+  List all the things spack knows about
+   - . /home/cnh/projects/spack-testing/spack/share/spack/setup-env.sh
+   - spack list
+
+   Install a useful tool
+   - spack install cmake%gcc@4.8.5
+
+   Install openmpi with cuda support enabled
+   - bin/spack install openmpi%gcc@8.3.0 cuda=true
+
+   Figure out what would be installed to satisfy a gien spec
+   - spack spec -I hdf5%gcc@8.3.0 cxx=true fortran=true mpi=true threadsafe=true
+   - spack spec -I openmpi%gcc@8.3.0 cuda=true
+   - spack spec -I hdf5%gcc@8.3.0 cxx=true fortran=true mpi=true threadsafe=true ^openmpi@3.1.4%gcc@8.3.0+cuda+cxx_exceptions fabrics=none ~java~legacylaunchers~memchecker~pmi schedulers=none ~sqlite3~thread_multiple+vt
+   - spack spec -I netcdf
+
+   spack install hdf5%gcc@8.3.0 cxx=true fortran=true mpi=true threadsafe=true ^openmpi@3.1.4%gcc@8.3.0+cuda+cxx_exceptions fabrics=none ~java~legacylaunchers~memchecker~pmi schedulers=none ~sqlite3~thread_multiple+vt
+
+   Configure where built software is stored and how modules are generated
+   cp etc/spack/defaults/config.yaml etc/spack/
+   cp etc/spack/defaults/modules.yaml etc/spack/
+   .... edit ....
+
+   cat etc/spack/config.yaml
+     install_tree: /nobackup/users/cnh/projects/standard-software/v20191209/spack
+     tcl:    /nobackup/users/cnh/projects/standard-software/v20191209/spack/share/spack/tcl
+     lmod:   /nobackup/users/cnh/projects/standard-software/v20191209/spack/share/spack/lmod
+
+   Install some software with verbose logging
+   - bin/spack install --verbose ffmpeg%gcc@8.3.0
+
+   Create a modules tree that has succinct names and sets paths to specific sub-directories in 
+   a spack build tree
+   - spack module lmod refresh --delete-tree -y
+
+   Web page on Spack and netcdf for GEOS-Chem
+   http://wiki.seas.harvard.edu/geos-chem/index.php/Use_Spack_to_install_netCDF_on_your_system
+
+o A worked example
+
+  1. we want to install netcdf-fortran, using the set of software we have already built.
+
+  - First see what options netcdf-fortran supports and what direct depedncies it has
+  $ spack info netcdf-fortran
+
+  In this case it shows only one option pic=true|false. We are OK with leaving this true.
+  The info also shows a dependency on netcdf.
+
+  - Lets see the staus of the packages that will be needed to build netcdf-fortran and
+    its dependencies. Lets decide we are going to use gcc@8.3.0 as the compiler.
+  $ spack spec -I netcdf-fortran%gcc@8.3.0
+
+  Depedencies marked  -  need to be built, or we need to change the spec to use existing depedencies.
+  
+  - Lets see if we have variants that might be usable
+  $ spack find -N -c -x -f -L -v  -p --show-full-compiler 
+
+  - Lets check the concretized spec again with our existing openmpi and hdf5 spec added as a selection
+  spack spec -L -N -I netcdf-fortran%gcc@8.3.0 ^openmpi@3.1.4%gcc@8.3.0 +cuda+cxx_exceptions fabrics=none ~java~legacylaunchers~memchecker~pmi schedulers=none ~sqlite3~thread_multiple+vt ^hdf5@1.10.5%gcc@8.3.0 +cxx~debug+fortran~hl+mpi+pic+shared~szip+threadsafe
+
+  - Oh dear it looks like netcdf (which netcdf-fortran) requires hdf5 built with hl=true (not the default hl=false)
+  - Lets get rid of the current hdf5 and replace with one wth +hl. We can safely do this because
+    $ spack dependents -i hdf5%gcc@8.3.0 cxx=true fortran=true mpi=true threadsafe=true ^openmpi@3.1.4%gcc@8.3.0+cuda+cxx_exceptions fabrics=none ~java~legacylaunchers~memchecker~pmi schedulers=none ~sqlite3~thread_multiple+vt
+    shows zero dpackages currently depending on the current hdf5 build
+    $ spack uninstall hdf5%gcc@8.3.0 cxx=true fortran=true mpi=true threadsafe=true ^openmpi@3.1.4%gcc@8.3.0+cuda+cxx_exceptions fabrics=none ~java~legacylaunchers~memchecker~pmi schedulers=none ~sqlite3~thread_multiple+vt
+    $ spack install hdf5%gcc@8.3.0 cxx=true fortran=true mpi=true hl=true threadsafe=true ^openmpi@3.1.4%gcc@8.3.0+cuda+cxx_exceptions fabrics=none ~java~legacylaunchers~memchecker~pmi schedulers=none ~sqlite3~thread_multiple+vt
+
+  - Now lets check concretized spec again
+    $ spack spec -L -N -I netcdf-fortran%gcc@8.3.0 ^openmpi@3.1.4%gcc@8.3.0 +cuda+cxx_exceptions fabrics=none ~java~legacylaunchers~memchecker~pmi schedulers=none ~sqlite3~thread_multiple+vt ^hdf5@1.10.5%gcc@8.3.0 +cxx~debug+fortran+hl+mpi+pic+shared~szip+threadsafe
+    Thats better now we only need netcdf and netcdf-fortran. 
+
+  
+
